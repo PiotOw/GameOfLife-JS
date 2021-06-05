@@ -35,7 +35,7 @@ window.onload = function (event) {
             for (let i = 0; i < 4; i++) {
                 parts.push(getPartGrid(i));
             }
-            new Parallel(parts).require(getCellNextState).map(function (part) {
+            new Parallel(parts, {maxWorkers: 4}).require(getCellNextState).map(function (part) {
                 const newPart = [];
                 let miniGrid = [];
                 for (let i = 1; i < part.length - 1; i++) {
