@@ -1,6 +1,6 @@
 window.onload = function (event) {
-    const cellWidth = 30;
-    const cellHeight = 30;
+    const cellWidth = 1;
+    const cellHeight = 1;
     let gridWidth;
     let gridHeight;
     let cells;
@@ -31,6 +31,7 @@ window.onload = function (event) {
         redraw();
 
         setInterval(() => {
+            var start = new Date();
             parts = [];
             for (let i = 0; i < 4; i++) {
                 parts.push(getPartGrid(i));
@@ -53,7 +54,9 @@ window.onload = function (event) {
                 return newPart;
             }).then(function (parts) {
                 cells = mergeParts(parts);
+                var end = new Date()
                 redraw();
+                console.log(end - start);
             });
         }, 1000);
 
@@ -80,7 +83,7 @@ window.onload = function (event) {
                 const cell = cellsRow[j];
                 if (cell !== null) {
                     ctx.fillStyle = cell ? '#080808' : '#E4E4E4';
-                    ctx.fillRect(j * (cellWidth + 1) + 100, i * (cellHeight + 1) + 100, cellWidth, cellHeight);
+                    ctx.fillRect(j * (cellWidth) + 100, i * (cellHeight) + 100, cellWidth, cellHeight);
                 }
             }
         }
