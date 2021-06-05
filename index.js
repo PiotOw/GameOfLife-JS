@@ -1,8 +1,7 @@
 window.onload = function (event) {
     console.log('init');
-    const cellWidth = 20;
-    const cellHeight = 20;
-    const cellColor = "rgb(250,82,82)";
+    const cellWidth = 30;
+    const cellHeight = 30;
     let gridWidth;
     let gridHeight;
     let cells;
@@ -13,8 +12,6 @@ window.onload = function (event) {
     canvas.height = window.innerHeight;
     canvas.width = window.innerWidth;
     const ctx = canvas.getContext("2d");
-
-    redraw();
 
     fetch('data.txt')
         .then(response => response.text())
@@ -32,6 +29,7 @@ window.onload = function (event) {
         gridHeight = readData.shift();
         cells = readData.map(array => array.map(element => element === 'X'));
         addBorderToCells();
+        redraw();
     }
 
     function addBorderToCells() {
@@ -49,12 +47,17 @@ window.onload = function (event) {
 
     function redraw() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.beginPath();
-        ctx.rect(400, 400, cellWidth, cellHeight);
-        ctx.closePath();
-        ctx.fillStyle = cellColor;
-        ctx.fill();
-        requestAnimationFrame(redraw);
+        for (let i = 0; i < cells.length; i++) {
+            const cellsRow = cells[i];
+            console.log(cellsRow);
+            for (let j = 0; j < cellsRow.length; j++) {
+                const cell = cellsRow[j];
+                if (cell !== null) {
+                    ctx.fillStyle = cell ? '#080808' : '#E4E4E4';
+                    ctx.fillRect(j * (cellWidth + 1) + 100, i * (cellHeight + 1) + 100, cellWidth, cellHeight);
+                }
+            }
+        }
     }
 
     function getCellNextState(cellsWithNeighbours) {
@@ -82,40 +85,5 @@ window.onload = function (event) {
             grid.push(row);
         }
         return grid;
-
-        //
-        // switch (index) {
-        //     case 0:
-        //         for (let i = 0; i < grid[0].length; i++) {
-        //             grid[0][i] = false;
-        //         }
-        //         for (let i = 0; i < grid.length; i++) {
-        //             grid[i][0] = false;
-        //         }
-        //         break;
-        //     case 1:
-        //         for (let i = 0; i < grid[0].length; i++) {
-        //             grid[0][i] = false;
-        //         }
-        //         for (let i = 0; i < grid.length; i++) {
-        //             grid[i][grid[0].length - 1] = false;
-        //         }
-        //         break;
-        //     case 2:
-        //         for (let i = 0; i < grid[0].length; i++) {
-        //             grid[0][i] = false;
-        //         }
-        //         for (let i = 0; i < grid.length; i++) {
-        //             grid[i][0] = false;
-        //         }
-        //         break;
-        //     case 3:
-        //         for (let i = 0; i < grid[0].length; i++) {
-        //             grid[0][i] = false;
-        //         }
-        //         for (let i = 0; i < grid.length; i++) {
-        //             grid[i][0] = false;
-        //         }
-        // }
     }
 }
