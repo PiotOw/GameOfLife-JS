@@ -1,11 +1,11 @@
 window.onload = function (event) {
-    console.log('init');
     const cellWidth = 30;
     const cellHeight = 30;
     let gridWidth;
     let gridHeight;
     let cells;
-    let readData = []
+    let readData = [];
+    let parts = [];
 
 
     const canvas = document.getElementById('canvas');
@@ -19,37 +19,63 @@ window.onload = function (event) {
                 readData = data
                     .split('\n')
                     .filter(line => line !== '')
-                    .map(line => line.length > 1 ? line.split('') : line)
-
             }
         ).then(_ => main())
 
     function main() {
         gridWidth = readData.shift();
         gridHeight = readData.shift();
-        cells = readData.map(array => array.map(element => element === 'X'));
-        addBorderToCells();
+        cells = readData.map(line => line.length > 1 ? line.split('') : line)
+            .map(array => array.map(element => element === 'X'));
+        addBorderToCells(cells);
         redraw();
+
+        setInterval(() => {
+            parts = [];
+            for (let i = 0; i < 4; i++) {
+                parts.push(getPartGrid(i));
+            }
+            new Parallel(parts).require(getCellNextState).map(function (part) {
+                const newPart = [];
+                let miniGrid = [];
+                for (let i = 1; i < part.length - 1; i++) {
+                    const newRow = [];
+                    for (let j = 1; j < part[0].length - 1; j++) {
+                        miniGrid = [
+                            [part[i - 1][j - 1], part[i - 1][j], part[i - 1][j + 1]],
+                            [part[i][j - 1], part[i][j], part[i][j + 1]],
+                            [part[i + 1][j - 1], part[i + 1][j], part[i + 1][j + 1]],
+                        ];
+                        newRow.push(getCellNextState(miniGrid));
+                    }
+                    newPart.push(newRow);
+                }
+                return newPart;
+            }).then(function (parts) {
+                cells = mergeParts(parts);
+                redraw();
+            });
+        }, 1000);
+
     }
 
-    function addBorderToCells() {
-        for (const row of cells) {
+    function addBorderToCells(cellGrid) {
+        for (const row of cellGrid) {
             row.unshift(null);
             row.push(null);
         }
         const tempRow = [];
-        for (let i = 0; i < cells[0].length; i++) {
+        for (let i = 0; i < cellGrid[0].length; i++) {
             tempRow.push(null);
         }
-        cells.unshift(tempRow);
-        cells.push(tempRow);
+        cellGrid.unshift(tempRow);
+        cellGrid.push(tempRow);
     }
 
     function redraw() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         for (let i = 0; i < cells.length; i++) {
             const cellsRow = cells[i];
-            console.log(cellsRow);
             for (let j = 0; j < cellsRow.length; j++) {
                 const cell = cellsRow[j];
                 if (cell !== null) {
@@ -62,9 +88,11 @@ window.onload = function (event) {
 
     function getCellNextState(cellsWithNeighbours) {
         let aliveNeighbours = 0;
-        for (let [row, i] of cellsWithNeighbours) {
-            for (let [cell, j] of row) {
-                if ((i === 1 && j === 1) && cell) {
+        for (let i = 0; i < cellsWithNeighbours.length; i++) {
+            const row = cellsWithNeighbours[i]
+            for (let j = 0; j < row.length; j++) {
+                const cell = row[j];
+                if (!(i === 1 && j === 1) && cell) {
                     aliveNeighbours++;
                 }
             }
@@ -72,7 +100,7 @@ window.onload = function (event) {
         return cellsWithNeighbours[1][1] ? [2, 3].includes(aliveNeighbours) : aliveNeighbours === 3;
     }
 
-    function getMiniGrid(index) {
+    function getPartGrid(index) {
         const grid = [];
 
         for (let i = 0; i < gridHeight / 2 + 2; i++) {
@@ -85,5 +113,16 @@ window.onload = function (event) {
             grid.push(row);
         }
         return grid;
+    }
+
+    function mergeParts(parts) {
+        const newGrid = [];
+        for (let i = 0; i < gridHeight; i++) {
+            const newRow = parts[i < gridHeight / 2 ? 0 : 2][i % (gridHeight / 2)]
+            newRow.push(...parts[i < gridHeight / 2 ? 1 : 3][i % (gridHeight / 2)])
+            newGrid.push(newRow);
+        }
+        addBorderToCells(newGrid);
+        return newGrid;
     }
 }
